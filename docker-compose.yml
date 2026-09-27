@@ -1,0 +1,48 @@
+services:
+  auth-service:
+    build: ./auth-service
+    container_name: ecommerce-auth-service
+    environment:
+      PORT: 3001
+      DB_HOST: host.docker.internal
+      DB_PORT: 5433
+      DB_NAME: auth_db
+      DB_USER: auth_user
+      DB_PASSWORD: auth_password
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 1h
+    ports:
+      - "3001:3001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: ecommerce-api-gateway
+    environment:
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 1h
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - redis
+    networks:
+      - ecommerce-network
+
+  redis:
+    image: redis:7
+    container_name: ecommerce-redis-compose
+    ports:
+      - "6379:6379"
+    networks:
+      - ecommerce-network
+
+networks:
+  ecommerce-network:
+    driver: bridge
