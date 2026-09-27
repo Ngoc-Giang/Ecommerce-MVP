@@ -8,6 +8,7 @@ const {
 
 const { connectRedis } = require("../config/redis");
 const rateLimit = require("../middleware/rateLimitMiddleware");
+const authenticateToken = require("../middleware/authMiddleware");
 
 const app = express();
 
@@ -23,6 +24,22 @@ app.use(
         target: process.env.AUTH_SERVICE_URL || "http://localhost:3001",
         changeOrigin: true,
         pathFilter: "/auth",
+        on: {
+            proxyReq: fixRequestBody
+        }
+    })
+);
+
+app.use(
+    "/customers",
+    authenticateToken
+);
+
+app.use(
+    createProxyMiddleware({
+        target: process.env.CUSTOMER_SERVICE_URL || "http://localhost:3002",
+        changeOrigin: true,
+        pathFilter: "/customers",
         on: {
             proxyReq: fixRequestBody
         }
