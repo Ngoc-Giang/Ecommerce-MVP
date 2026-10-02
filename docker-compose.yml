@@ -117,7 +117,7 @@ services:
 
   # ================= ỨNG DỤNG =================
   auth-service:
-    build: { context: ., dockerfile: auth-service/Dockerfile }
+    build: { context: ., dockerfile: services/auth-service/Dockerfile }
     restart: unless-stopped
     environment:
       PORT: 3001
@@ -149,7 +149,7 @@ services:
     networks: [ecommerce-network]
 
   customer-service:
-    build: { context: ., dockerfile: customer-service/Dockerfile }
+    build: { context: ., dockerfile: services/customer-service/Dockerfile }
     restart: unless-stopped
     environment:
       PORT: 3002
@@ -173,7 +173,7 @@ services:
     networks: [ecommerce-network]
 
   order-service:
-    build: { context: ., dockerfile: order-service/Dockerfile }
+    build: { context: ., dockerfile: services/order-service/Dockerfile }
     restart: unless-stopped
     environment:
       PORT: 3003
@@ -203,7 +203,7 @@ services:
     networks: [ecommerce-network]
 
   product-service:
-    build: { context: ., dockerfile: product-service/Dockerfile }
+    build: { context: ., dockerfile: services/product-service/Dockerfile }
     restart: unless-stopped
     environment:
       PORT: 3004
@@ -220,7 +220,7 @@ services:
     networks: [ecommerce-network]
 
   shipment-service:
-    build: { context: ., dockerfile: shipment-service/Dockerfile }
+    build: { context: ., dockerfile: services/shipment-service/Dockerfile }
     restart: unless-stopped
     environment:
       PORT: 3005
@@ -241,7 +241,7 @@ services:
 
   # Điểm vào DUY NHẤT: chỉ api-gateway mở cổng ra máy host.
   api-gateway:
-    build: { context: ., dockerfile: api-gateway/Dockerfile }
+    build: { context: ., dockerfile: services/api-gateway/Dockerfile }
     restart: unless-stopped
     environment:
       PORT: 3000
