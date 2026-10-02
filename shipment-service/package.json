@@ -1,0 +1,16 @@
+{
+  "name": "shipment-service",
+  "version": "1.0.0",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.12.0",
+    "@grpc/proto-loader": "^0.7.13",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "kafkajs": "^2.2.4",
+    "mongodb": "^7.7.0"
+  }
+}

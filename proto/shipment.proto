@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package shipment;
+
+// Shipment Service — được API Gateway gọi (REST -> gRPC). Shipment được TẠO từ sự kiện OrderCreated qua Kafka, không qua gRPC.
+service ShipmentService {
+  rpc GetShipment (GetShipmentRequest) returns (ShipmentResponse);
+  // Tra shipment theo đơn hàng (để GET /api/orders/:oid kèm được thông tin giao hàng).
+  rpc GetShipmentByOrder (GetShipmentByOrderRequest) returns (ShipmentResponse);
+  rpc UpdateShipmentStatus (UpdateShipmentStatusRequest) returns (ShipmentResponse);
+}
+
+message GetShipmentRequest {
+  int32 shipid = 1;
+}
+
+message GetShipmentByOrderRequest {
+  int32 oid = 1;
+}
+
+message UpdateShipmentStatusRequest {
+  int32 shipid = 1;
+  string status = 2;
+}
+
+// uid là chủ đơn hàng (lấy từ OrderCreated) — Gateway dùng để kiểm tra quyền xem, KHÔNG trả ra REST.
+message ShipmentResponse {
+  int32 shipid = 1;
+  int32 oid = 2;
+  int32 uid = 3;
+  string status = 4;
+}

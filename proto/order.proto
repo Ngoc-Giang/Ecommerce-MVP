@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package order;
+
+// Order Management Service — được API Gateway gọi (REST -> gRPC).
+// Order Service tự gọi Customer Service (lấy điểm) và Product Service (kiểm tra giá/tồn kho, trừ kho).
+service OrderService {
+  rpc CreateOrder (CreateOrderRequest) returns (OrderResponse);
+  rpc GetOrder (GetOrderRequest) returns (OrderResponse);
+  rpc ListOrders (ListOrdersRequest) returns (ListOrdersResponse);
+}
+
+message OrderItemInput {
+  int32 pid = 1;
+  int32 qty = 2;
+}
+
+message CreateOrderRequest {
+  int32 uid = 1;                      // lấy từ JWT ở Gateway, không nhận từ body
+  repeated OrderItemInput items = 2;
+}
+
+message OrderItem {
+  int32 pid = 1;
+  int32 qty = 2;
+  double unit_price = 3;
+}
+
+message OrderResponse {
+  int32 oid = 1;
+  int32 uid = 2;
+  double discount = 3;                // SỐ TIỀN giảm (DECIMAL(10,2) trong ERD)
+  double total_amount = 4;            // tổng tiền hàng - discount
+  repeated OrderItem items = 5;
+}
+
+message GetOrderRequest {
+  int32 oid = 1;
+}
+
+// uid = 0: lấy tất cả (Gateway chỉ gửi 0 khi người gọi là ADMIN).
+message ListOrdersRequest {
+  int32 uid = 1;
+}
+
+message OrderSummary {
+  int32 oid = 1;
+  int32 uid = 2;
+  double discount = 3;
+}
+
+message ListOrdersResponse {
+  repeated OrderSummary items = 1;
+}

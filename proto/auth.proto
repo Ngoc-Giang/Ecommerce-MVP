@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+    rpc Register (RegisterRequest) returns (RegisterResponse);
+    rpc Login (LoginRequest) returns (LoginResponse);
+    rpc VerifyToken (VerifyTokenRequest) returns (VerifyTokenResponse);
+}
+
+// Cố ý KHÔNG có trường role: tài khoản tự đăng ký luôn là CUSTOMER.
+message RegisterRequest {
+    string username = 1;
+    string password = 2;
+    string email = 3;
+    string phone = 4;
+}
+message RegisterResponse { int32 uid = 1; }
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+message LoginResponse {
+    string access_token = 1;
+    int32 expires_in = 2;
+}
+
+message VerifyTokenRequest { string token = 1; }
+message VerifyTokenResponse {
+    int32 uid = 1;
+    string role = 2;
+    int64 exp = 3;
+}

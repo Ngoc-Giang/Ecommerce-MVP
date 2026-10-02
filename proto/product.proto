@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package product;
+
+// Product Catalog Service.
+//  - Nhóm 1 (catalog): API Gateway gọi để phục vụ REST /api/products.
+//  - Nhóm 2 (tồn kho): Order Service gọi khi đặt hàng.
+service ProductService {
+  rpc ListProducts (ListProductsRequest) returns (ListProductsResponse);
+  rpc GetProduct (GetProductRequest) returns (ProductResponse);
+  rpc CreateProduct (CreateProductRequest) returns (ProductResponse);
+  rpc UpdateProduct (UpdateProductRequest) returns (UpdateProductResponse);
+  rpc DeleteProduct (DeleteProductRequest) returns (DeleteProductResponse);
+
+  // Kiểm tra giá + tồn kho rồi trừ tồn kho: được cả lô hoặc không được gì (UC06 bước 6-7, UC08).
+  rpc ReserveStock (ReserveStockRequest) returns (ReserveStockResponse);
+  // Hoàn lại tồn kho khi bước sau của Order thất bại (bù trừ).
+  rpc ReleaseStock (ReleaseStockRequest) returns (ReleaseStockResponse);
+}
+
+message ProductResponse {
+  int32 pid = 1;
+  string pname = 2;
+  double price = 3;
+  int32 quantity = 4;
+}
+
+message ListProductsRequest {}
+
+message ListProductsResponse {
+  repeated ProductResponse items = 1;
+}
+
+message GetProductRequest {
+  int32 pid = 1;
+}
+
+message CreateProductRequest {
+  string pname = 1;
+  double price = 2;
+  int32 quantity = 3;
+}
+
+// PUT thay thế toàn bộ: cả ba trường bắt buộc.
+message UpdateProductRequest {
+  int32 pid = 1;
+  string pname = 2;
+  double price = 3;
+  int32 quantity = 4;
+}
+
+message UpdateProductResponse {
+  int32 pid = 1;
+}
+
+message DeleteProductRequest {
+  int32 pid = 1;
+}
+
+message DeleteProductResponse {
+  int32 pid = 1;
+}
+
+message StockItem {
+  int32 pid = 1;
+  int32 qty = 2;
+}
+
+message ReserveStockRequest {
+  repeated StockItem items = 1;
+}
+
+message ReservedItem {
+  int32 pid = 1;
+  int32 qty = 2;
+  double unit_price = 3; // giá tại thời điểm đặt, Order lưu vào OrderDetail
+}
+
+message ReserveStockResponse {
+  repeated ReservedItem items = 1;
+}
+
+message ReleaseStockRequest {
+  repeated StockItem items = 1;
+}
+
+message ReleaseStockResponse {}

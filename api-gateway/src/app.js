@@ -1,71 +1,53 @@
 require("dotenv").config();
 
-const express = require("express");
-const {
-    createProxyMiddleware,
-    fixRequestBody
-} = require("http-proxy-middleware");
+const pino = require("pino");
+const { loadConfig } = require("./config/env");
+const { createRedis } = require("./config/redis");
+const { AuthClient } = require("./grpc/authClient");
+const { CustomerClient } = require("./grpc/customerClient");
+const { ProductClient } = require("./grpc/productClient");
+const { OrderClient } = require("./grpc/orderClient");
+const { ShipmentClient } = require("./grpc/shipmentClient");
+const { TokenCache } = require("./cache/tokenCache");
+const { RedisRateLimitStore } = require("./middleware/rateLimit");
+const { createApp } = require("./createApp");
 
-const { connectRedis } = require("../config/redis");
-const rateLimit = require("../middleware/rateLimitMiddleware");
-const authenticateToken = require("../middleware/authMiddleware");
+const config = loadConfig();
+const logger = pino({ level: process.env.LOG_LEVEL || "info", base: { service: "api-gateway" } });
 
-const app = express();
-
-app.use(express.json());
-
-app.use(
-    "/auth/login",
-    rateLimit
-);
-
-app.use(
-    createProxyMiddleware({
-        target: process.env.AUTH_SERVICE_URL || "http://localhost:3001",
-        changeOrigin: true,
-        pathFilter: "/auth",
-        on: {
-            proxyReq: fixRequestBody
-        }
-    })
-);
-
-app.use(
-    "/customers",
-    authenticateToken
-);
-
-app.use(
-    createProxyMiddleware({
-        target: process.env.CUSTOMER_SERVICE_URL || "http://localhost:3002",
-        changeOrigin: true,
-        pathFilter: "/customers",
-        on: {
-            proxyReq: fixRequestBody
-        }
-    })
-);
-
-app.get("/health", (req, res) => {
-    return res.status(200).json({
-        service: "api-gateway",
-        status: "UP"
-    });
+const redis = createRedis(config.redisUrl, logger);
+const authClient = new AuthClient({ url: config.authGrpcUrl, timeoutMs: config.grpcTimeoutMs });
+const customerClient = new CustomerClient({ url: config.customerGrpcUrl, timeoutMs: config.grpcTimeoutMs });
+const productClient = new ProductClient({ url: config.productGrpcUrl, timeoutMs: config.grpcTimeoutMs });
+const orderClient = new OrderClient({ url: config.orderGrpcUrl, timeoutMs: config.grpcTimeoutMs });
+const shipmentClient = new ShipmentClient({ url: config.shipmentGrpcUrl, timeoutMs: config.grpcTimeoutMs });
+const app = createApp({
+    config,
+    logger,
+    authClient,
+    customerClient,
+    productClient,
+    orderClient,
+    shipmentClient,
+    redis,
+    tokenCache: new TokenCache({ redis, logger }),
+    rateLimitStore: new RedisRateLimitStore(redis)
 });
 
-const PORT = process.env.PORT || 3000;
+const server = app.listen(config.port, () => logger.info(`API Gateway listening on :${config.port}`));
 
-const startServer = async () => {
-    try {
-        await connectRedis();
-
-        app.listen(PORT, () => {
-            console.log(`API Gateway running on port ${PORT}`);
-        });
-    } catch (error) {
-        console.error("Failed to start API Gateway:", error);
-        process.exit(1);
-    }
+const shutdown = () => {
+    logger.info("shutting down");
+    server.close(async () => {
+        authClient.close();
+        customerClient.close();
+        productClient.close();
+        orderClient.close();
+        shipmentClient.close();
+        await redis.quit().catch(() => {});
+        process.exit(0);
+    });
+    setTimeout(() => process.exit(1), 10000).unref();
 };
-
-startServer();
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

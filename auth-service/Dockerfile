@@ -1,13 +1,11 @@
 FROM node:22-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-
+ENV NODE_ENV=production
+# Giữ cùng cấu trúc thư mục như trong repo: /app/auth-service và /app/proto
+WORKDIR /app/auth-service
+COPY auth-service/package*.json ./
 RUN npm ci --omit=dev
-
-COPY . .
-
-EXPOSE 3001
-
+COPY auth-service/ ./
+COPY proto/ /app/proto/
+USER node
+EXPOSE 3001 50051
 CMD ["node", "src/app.js"]

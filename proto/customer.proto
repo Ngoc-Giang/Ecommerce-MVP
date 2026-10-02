@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package customer;
+
+// Được gọi bởi API Gateway (REST -> gRPC) và Order Service (lấy điểm để tính giảm giá).
+service CustomerService {
+  rpc GetCustomer (GetCustomerRequest) returns (CustomerResponse);
+  rpc UpdateCustomer (UpdateCustomerRequest) returns (UpdateCustomerResponse);
+}
+
+message GetCustomerRequest {
+  int32 uid = 1;
+}
+
+message Membership {
+  int32 mid = 1;
+  string mname = 2;
+  int32 score = 3;
+}
+
+message CustomerResponse {
+  int32 uid = 1;
+  string fullname = 2;
+  int32 mid = 3;
+  Membership membership = 4;
+}
+
+// fullname rỗng = không đổi; mid = 0 = không đổi.
+message UpdateCustomerRequest {
+  int32 uid = 1;
+  string fullname = 2;
+  int32 mid = 3;
+}
+
+message UpdateCustomerResponse {
+  int32 uid = 1;
+}

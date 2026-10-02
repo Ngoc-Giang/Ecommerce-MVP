@@ -1,13 +1,10 @@
 FROM node:22-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-
+ENV NODE_ENV=production
+WORKDIR /app/api-gateway
+COPY api-gateway/package*.json ./
 RUN npm ci --omit=dev
-
-COPY . .
-
+COPY api-gateway/ ./
+COPY proto/ /app/proto/
+USER node
 EXPOSE 3000
-
 CMD ["node", "src/app.js"]
