@@ -61,6 +61,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?}
     volumes:
       - product-db-data:/data/db
+      - ./db/product/init.js:/docker-entrypoint-initdb.d/init.js:ro
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet -u root -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval 'db.adminCommand(\"ping\").ok' | grep -q 1"]
       interval: 5s
